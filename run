@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const Transpiler = require('./transpiler');
 
 const fs = require('fs');
