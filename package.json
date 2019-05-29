@@ -1,7 +1,8 @@
 {
   "name": "tsol",
-  "version": "1.0.2",
-  "description": "",
+  "version": "1.0.3",
+  "description": "A transpiler for Solidity to make assembly manageable",
+  "repository": "github:merklex/tsol",
   "bin": "./run",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
