@@ -1,6 +1,6 @@
 {
   "name": "tsol",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A transpiler for Solidity to make assembly manageable",
   "repository": "github:merklex/tsol",
   "bin": "./run",
