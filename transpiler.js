@@ -154,8 +154,8 @@ module.exports = function(raw) {
         const name = node.name;
         const params = node.parameters.parameters.map(param => {
           const type = param.typeName.name;
-          const name = param.name;
-          return { type, name };
+          const { name, isIndexed } = param;
+          return { type, name, isIndexed };
         });
 
         const hash_hex = '0x' + keccak256(`${name}(${params.map(p => p.type).join(',')})`);
@@ -482,15 +482,36 @@ module.exports = function(raw) {
             throw new Error('event ' + name + ' expected ' + event.parameters.length + ' parameters but got ' + args.length);
           }
 
+          const indexed = [ `/* ${name} */ ${event.hash_hex}` ];
           const parts = ['', `/* Log event: ${name} */`];
 
+          let next_word_pos = 0;
+          let in_index = true;
+
           for (let i = 0; i < args.length; ++i) {
-            const offset = BigInt(i) * 32n;
-            const ptr = offset === 0n ? memory : `add(${memory}, ${offset})`;
-            parts.push(`mstore(${ptr}, ${args[i]})`);
+            const param = event.parameters[i];
+            const arg = args[i];
+
+            if (!param.isIndexed) {
+              const offset = BigInt(next_word_pos) * 32n;
+              const ptr = offset === 0n ? memory : `add(${memory}, ${offset})`;
+              parts.push(`mstore(${ptr}, ${arg})`);
+              next_word_pos += 1;
+              in_index = false;
+            }
+            else if (!in_index) {
+              throw new Error('event args went from not indexed to indexed');
+            }
+            else {
+              indexed.push(arg);
+            }
           }
 
-          parts.push(`log1(${memory}, ${args.length * 32}, /* ${name} */ ${event.hash_hex})`);
+          if (indexed.length > 4) {
+            throw new Error('max of 4 indexed parameters supported');
+          }
+
+          parts.push(`log${indexed.length}(${memory}, ${next_word_pos * 32}, ${indexed.join(', ')})`);
 
           return parts.join('\n' + tab);
         }
