@@ -3,14 +3,13 @@ const GCCProcessor = require('./gcc_processor');
 const Parser = require('solidity-parser-antlr');
 const keccak256 = require('js-sha3').keccak256;
 
-module.exports = function(raw) {
+module.exports = function(file_name, raw) {
   if (raw.indexOf('#define TRANSPILE') === -1) {
     return Promise.resolve(raw);
   }
 
-  return GCCProcessor(raw).then(source => {
+  return GCCProcessor(file_name).then(source => {
     const source_first_line = raw.substr(0, raw.indexOf('\n') + 1);
-    source = source.substr(source.indexOf(source_first_line));
 
     let ast;
     try {
@@ -20,10 +19,12 @@ module.exports = function(raw) {
 
       console.log(e)
 
-      e.errors.forEach(error => {
-        console.log(error);
-        console.log(lines[error.line - 1]);
-      });
+      if (e.errors) {
+        e.errors.forEach(error => {
+          console.log(error);
+          console.log('line: ', lines[error.line - 1]);
+        });
+      }
 
       process.exit(1);
       return;
@@ -84,7 +85,14 @@ module.exports = function(raw) {
 
       if (node.type === 'ContractDefinition') {
         const pre = '\n' + tab + TAB;
-        return `contract ${node.name} {${pre}${ node.subNodes.map(node => print(node, tab + TAB)).join(pre) }\n${tab}}`;
+
+        let is = '';
+
+        if (node.baseContracts.length) {
+          is = 'is ' + node.baseContracts[0].baseName.namePath + ' ';
+        }
+
+        return `contract ${node.name} ${is}{${pre}${ node.subNodes.map(node => print(node, tab + TAB)).join(pre) }\n${tab}}`;
       }
 
       if (node.type === 'WhileStatement') {

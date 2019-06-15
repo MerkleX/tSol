@@ -1,8 +1,8 @@
 const spawn = require('child_process').spawn;
 
-module.exports = function(source) {
+module.exports = function(file_path) {
   return new Promise((resolve, reject) => {
-    const ps = spawn('gcc', ['-E', '-P', '-CC', '-']);
+    const ps = spawn('cpp', ['-P', file_path]);
 
     const data = [];
 
@@ -21,7 +21,6 @@ module.exports = function(source) {
       reject(err);
     });
 
-    ps.stdin.write(source);
     ps.stdin.end();
   });
 };
