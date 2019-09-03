@@ -615,6 +615,53 @@ module.exports = function(file_name, raw) {
           return BigInt(args[0]) - BigInt(args[1]);
         }
 
+        if (node.functionName === 'const_mul') {
+          const args = node.arguments.map(print);
+          if (args.length != 2) {
+            throw new Error('const_sub requires 2 args');
+          }
+
+          return BigInt(args[0]) * BigInt(args[1]);
+        }
+
+        if (node.functionName === 'const_pow') {
+          const args = node.arguments.map(print);
+          if (args.length != 2) {
+            throw new Error('const_sub requires 2 args');
+          }
+
+          const a = BigInt(args[0]);
+          const b = BigInt(args[1]);
+
+          if (b == 0) {
+            return BigInt(1);
+          }
+
+          return a ** b;
+        }
+
+        if (node.functionName === 'div') {
+          const args = node.arguments.map(print);
+          if (args.length != 2) {
+            throw new Error('const_sub requires 2 args');
+          }
+
+          if (args[1] + '' === '1') {
+            return args[0];
+          }
+        }
+
+        if (node.functionName === 'shr' || node.functionName === 'shl') {
+          const args = node.arguments.map(print);
+          if (args.length != 2) {
+            throw new Error('const_sub requires 2 args');
+          }
+
+          if (args[0] + '' === '0') {
+            return args[1];
+          }
+        }
+
         return node.functionName + '(' + node.arguments.map(arg => print(arg, tab)).join(', ') + ')';
       }
 
