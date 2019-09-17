@@ -11,6 +11,8 @@ module.exports = function(file_name, raw) {
   return GCCProcessor(file_name).then(source => {
     const source_first_line = raw.substr(0, raw.indexOf('\n') + 1);
 
+    source = source.replace(/hex"\s+(\w+)\s*";/g, 'hex"$1";');
+
     let ast;
     try {
       ast = Parser.parse(source, { loc: true, range: true });
@@ -181,6 +183,7 @@ module.exports = function(file_name, raw) {
         || node.type === 'ElementaryTypeName'
         || node.type === 'Identifier'
         || node.type === 'NumberLiteral'
+        || node.type === 'ExpressionStatement'
         || node.type === 'ReturnStatement'
         || node.type === 'StructDefinition') {
         return raw_input;
